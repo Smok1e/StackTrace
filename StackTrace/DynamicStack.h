@@ -23,7 +23,10 @@ enum StackError
 #ifndef NDEBUG
 
 	#define CHECK 	          	                               	                                                    \
-	{                                	                                                                            \
+	{                                                                                                               \
+                                                                                                                    \
+		/*printf ("%s [%d]:\n", __TX_FUNCTION__, __LINE__);*/                                                       \
+																													\
 		int res_ = OK ();	                               	                                                        \
 	                              																			        \
 		if (res_ >= 0)	                               	                               	                            \
@@ -51,7 +54,7 @@ long long HashOf (const void * ptr, size_t size);
 
 const char * strDynamicStackError (int err);
 
-template <typename T>
+template <typename DataType>
 
 class DynamicStack
 
@@ -65,13 +68,11 @@ public :
 
 	void resize (size_t size);
 
-	void push (T value);
+	void push (DataType value);
 
-	T pop ();
+	DataType pop ();
 
-	T top ();
-
-	T * get () { return stack_ + 1; }
+	DataType top ();
 
 	size_t getSize () { CHECK return size_; }
 
@@ -104,7 +105,7 @@ private :
 
 	long long hash_;
 
-	T * stack_;
+	char * data_;
 
 	size_t size_;
 
@@ -113,6 +114,10 @@ private :
 	long bound2_;
 
 	long destructed_;
+
+	void     set (size_t index, DataType value);
+
+	DataType get (size_t index);
 
 };
 

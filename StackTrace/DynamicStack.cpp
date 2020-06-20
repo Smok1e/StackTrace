@@ -1,11 +1,11 @@
 #define TX_COMPILED
 
-template <typename T>
-DynamicStack <T>::DynamicStack (size_t size /* = 0 */) :
+template <typename DataType>
+DynamicStack <DataType>::DynamicStack (size_t size /* = 0 */) :
 
 	bound1_ (CanaryValue),
 
-	stack_ (nullptr),
+	data_ (nullptr),
 
 	bound2_ (CanaryValue),
 
@@ -19,85 +19,83 @@ DynamicStack <T>::DynamicStack (size_t size /* = 0 */) :
 
 {
 
-	$do (stack_ = new T [2] );
+	printf ("Constructing stack...\n");
 
-	//$do (stack_ [0] = CanaryValue);
-	//$do (stack_ [1] = CanaryValue);
+	data_ = new char [sizeof (long) * 2];
 
-	$do (UpdateHash ());
+	* (long*) (data_)                 = CanaryValue;
+	* (long*) (data_ + sizeof (long)) = CanaryValue;
 
-	$do (resize (size));
+	UpdateHash ();
+
+	resize (size);
+
+	CHECK;
 
 }
 
-template <typename T>
-DynamicStack <T>::~DynamicStack ()
+template <typename DataType>
+DynamicStack <DataType>::~DynamicStack ()
+
+{
+
+	printf ("Destructing stack...\n");
+
+	CHECK;
+
+	delete[] (data_);
+
+	data_ = nullptr;
+
+	destructed_ = Defecated;
+
+}
+
+template <typename DataType>
+void DynamicStack <DataType>::resize (size_t size)
 
 {
 
 	CHECK;
 
-	$do (for (size_t n = 0; n < size_; n++)
+	printf ("Resizing from %zu to %zu...\n", size_, size);
 
+	if (size == size_) 
+		
 	{
 
-		//$do (stack_[n] = Defecated);
-	
-	})
+		printf ("Canceled: size == new size.\n");
 
-	$do (delete[] (stack_));
+		return;
 
-	$do (stack_ = nullptr);
+	}
 
-	$do (destructed_ = Defecated);
+    char * new_data = new char [size * sizeof (DataType) + 2 * sizeof (long)];
 
-}
+	* (long*) (new_data)                                            = CanaryValue;
+	* (long*) (new_data + size * sizeof (DataType) + sizeof (long)) = CanaryValue;
 
-//    {                                                                        //---/\---/\-------Это ASCII KOT!--//
-//$1  va_list arg; va_start (arg, msg);                                        //  {  '-'  }                      //
-//$$  const char* what = _txProcessError (file, line, func, color, msg, arg);  //  {  0 0  }     Добавь его себе  //
-//    va_end (arg);                                                            //  --> V <--  в исходник, и тебе  //
-//                                                                             //   \ \|/ /      будет, наверно,  //
-//    if (!(msg && msg[0] == '\a')) return what;                               //    \___/  приятно отлаживаться  //
-//                                                                            //---------------долгими ночами:)--//
+	for (size_t i = sizeof (long); i <= size_ * sizeof (DataType) && i <= size * sizeof (DataType); i += sizeof (DataType))
 
-template <typename T>
-void DynamicStack <T>::resize (size_t size)
+		* (DataType*) (new_data + i) = * (DataType*) (data_ + i);
 
-{
+	delete[] (data_);
+	data_ = new_data;
 
-	CHECK;
+	size_ = size;
 
-	printf ("Resizing from %zu to %zu.\n", size_, size);
+	if (length_ > size_) length_ = size_;
 
-	$do (T * new_stack = new T [size + 2]);
+	UpdateHash ();
 
-	//$do (new_stack [0       ] = CanaryValue );
-	//$do (new_stack [size + 1] = CanaryValue );
-
-	$do (for (size_t i = 1; i <= size; i++)
-
-	{
-
-		//$do (new_stack[i] = (i <= size_)? stack_ [i] : T (FreeValue));
-
-	})
-
-	$do (delete[] (stack_) );
-	$do (stack_ = new_stack );
-
-	$do (size_ = size );
-
-	$do (if (length_ > size_) length_ = size_ );
-
-	$do (UpdateHash ());
+	printf ("Resized: new data size is %d.\n", sizeof (DataType) * size_ + sizeof (long) * 2);
 
 	CHECK;
 
 }
 
-template <typename T>
-void DynamicStack <T>::push (T value)
+template <typename DataType>
+void DynamicStack <DataType>::push (DataType value)
 
 {
 
@@ -105,9 +103,9 @@ void DynamicStack <T>::push (T value)
 
 	if (length_ >= size_) resize ((size_ + 1) * 2);
 
-	length_ ++;
+	set (length_, value);
 
-	stack_ [length_] = value;
+	length_ ++;
 
 	UpdateHash ();
 
@@ -115,18 +113,16 @@ void DynamicStack <T>::push (T value)
 
 }
 
-template <typename T>
-T DynamicStack <T>::pop ()
+template <typename DataType>
+DataType DynamicStack <DataType>::pop ()
 
 {
 
 	CHECK
 
-	T value = top ();
-
-	stack_ [length_] = FreeValue;
-
 	length_ --;
+
+	DataType value = top ();
 
 	UpdateHash ();
 
@@ -136,19 +132,19 @@ T DynamicStack <T>::pop ()
 
 }
 
-template <typename T>
-T DynamicStack <T>::top ()
+template <typename DataType>
+DataType DynamicStack <DataType>::top ()
 
 {
 
 	CHECK
 
-	return stack_ [length_];
+	return get (length_);
 
 }
 
-template <typename T>
-int DynamicStack <T>::OK ()
+template <typename DataType>
+int DynamicStack <DataType>::OK ()
 
 {
 
@@ -165,15 +161,17 @@ int DynamicStack <T>::OK ()
 
 	if (hash != hash_)                       return StackErrorWrongHash;
 
-	for (size_t n = length_ + 1; n < size_; n++) 
-
-		if (get () [n] != FreeValue)         return StackErrorValuePositionViolation;
+	//for (size_t n = length_ + 1; n < size_; n++) 
+	//
+	//	if (get () [n] != FreeValue)         return StackErrorValuePositionViolation;
 
 	if (destructed_ == Defecated)            return StackErrorDestructed;
 	
-	if (stack_[0] != CanaryValue)            return StackErrorDynamicBound1Broken;
+	if (* (long*) data_ != CanaryValue)      return StackErrorDynamicBound1Broken;
 
-	if (stack_[size_ + 1] != CanaryValue)    return StackErrorDynamicBound1Broken;
+	if (* (long*) data_ + size_ * sizeof (DataType) + sizeof (long) != CanaryValue)    
+		
+											 return StackErrorDynamicBound2Broken;
 
 	return -1;
 
@@ -197,8 +195,8 @@ long long HashOf (const void * ptr, size_t size)
 
 }
 
-template <typename T>
-void DynamicStack <T>::print ()
+template <typename DataType>
+void DynamicStack <DataType>::print ()
 
 {
 
@@ -208,20 +206,26 @@ void DynamicStack <T>::print ()
 
 	printf ("-=Stack=-\n"
 		    "size   = %zu,\n"
-	        "length = %zu\n"
-	        "contains:\n", size_, length_);
+	        "length = %zu\n\n"
+	        "Contains:\n", size_, length_);
 
-	for (size_t i = 0; i < size_ + 2; i++)
+	size_t n = 0;
+
+	for (size_t i = 0; i < size_ * sizeof (DataType) + 2 * sizeof (long); i)
 
 	{
 
-		printf ("[%zu] = ", i);
+		printf ("[%zu] = ", n);
 	
-		if      (stack_[i] == CanaryValue) printf ("[Canary]\n");
-		else if (stack_[i] ==   FreeValue) printf ("[Free]\n");
-		else if (stack_[i] ==   Defecated) printf ("[Defecated!]\n");
+		if      (* (long*) (data_ + i) == CanaryValue) printf ("[Canary]\n"),     i += sizeof (long);
+		else if (* (long*) (data_ + i) ==   FreeValue) printf ("[Free]\n"),       i += sizeof (long);
+		else if (* (long*) (data_ + i) ==   Defecated) printf ("[Defecated!]\n"), i += sizeof (long);
 
-		else txPrintf ("%a\n", stack_[i]);
+		else txPrintf ("(%s) %a\n", typeid (DataType).name (), *(DataType*) (data_ + i)), i += sizeof (DataType);
+
+		//else printf ("\n"), i += sizeof (DataType);
+
+		n ++;
 
 	}
 
@@ -252,6 +256,24 @@ const char * strDynamicStackError (int err)
 	}
 
 	return "Unknown error";
+
+}
+
+template <typename DataType>
+void DynamicStack <DataType>::set (size_t index, DataType value)
+
+{
+
+	* (DataType*) (data_ + index * sizeof (DataType) + sizeof (long)) = value;
+
+}
+
+template <typename DataType>
+DataType DynamicStack <DataType>::get (size_t index)
+
+{
+
+	return * (DataType*) (data_ + index * sizeof (DataType) + sizeof (long));
 
 }
 
