@@ -17,6 +17,7 @@ enum StackError
 	StackErrorDestructed,
 	StackErrorDynamicBound1Broken,
 	StackErrorDynamicBound2Broken,
+	StackErrorWrongLength
 
 };
 
@@ -53,6 +54,41 @@ enum StackError
 long long HashOf (const void * ptr, size_t size);
 
 const char * strDynamicStackError (int err);
+
+template <typename DataType>
+struct DataShell
+
+{
+
+	char data_[sizeof (DataType)];
+
+	DataShell () :
+
+		data_ ()
+
+	{}
+
+	void set (DataType value)
+
+	{
+	
+		assert (data_);
+
+		* (DataType*) (data_) = value;
+
+	}
+
+	DataType get ()
+
+	{
+
+		assert (data_);
+	
+		return * (DataType*) (data_);
+
+	}
+
+};
 
 template <typename DataType>
 

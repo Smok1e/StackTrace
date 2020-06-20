@@ -137,8 +137,6 @@ DataType DynamicStack <DataType>::top ()
 
 {
 
-	CHECK
-
 	return get (length_);
 
 }
@@ -147,8 +145,6 @@ template <typename DataType>
 int DynamicStack <DataType>::OK ()
 
 {
-
-	return -1;
 
 	if (length_ > size_)                     return StackErrorSize;
 
@@ -167,11 +163,13 @@ int DynamicStack <DataType>::OK ()
 
 	if (destructed_ == Defecated)            return StackErrorDestructed;
 	
-	if (* (long*) data_ != CanaryValue)      return StackErrorDynamicBound1Broken;
+	if (* (long*) (data_) != CanaryValue)    return StackErrorDynamicBound1Broken;
 
-	if (* (long*) data_ + size_ * sizeof (DataType) + sizeof (long) != CanaryValue)    
+	if (* (long*) (data_ + size_ * sizeof (DataType) + sizeof (long)) != CanaryValue)    
 		
 											 return StackErrorDynamicBound2Broken;
+
+	if (length_ == SIZE_MAX)                 return StackErrorWrongLength;
 
 	return -1;
 
@@ -221,9 +219,9 @@ void DynamicStack <DataType>::print ()
 		else if (* (long*) (data_ + i) ==   FreeValue) printf ("[Free]\n"),       i += sizeof (long);
 		else if (* (long*) (data_ + i) ==   Defecated) printf ("[Defecated!]\n"), i += sizeof (long);
 
-		else txPrintf ("(%s) %a\n", typeid (DataType).name (), *(DataType*) (data_ + i)), i += sizeof (DataType);
+		//else txPrintf ("(%s) %a\n", typeid (DataType).name (), *(DataType*) (data_ + i)), i += sizeof (DataType);
 
-		//else printf ("\n"), i += sizeof (DataType);
+		else printf ("\n"), i += sizeof (DataType);
 
 		n ++;
 
@@ -252,6 +250,7 @@ const char * strDynamicStackError (int err)
 		STR_ERROR (StackErrorDestructed,             "Stack is already destructed");
 		STR_ERROR (StackErrorDynamicBound1Broken,    "Left iternal stack cannary broken");
 		STR_ERROR (StackErrorDynamicBound2Broken,    "Right iternal stack cannary broken");
+		STR_ERROR (StackErrorWrongLength,            "Length peaked (Maybe you trying to pop () with 0 length)");
 
 	}
 
@@ -290,18 +289,14 @@ void push_pop_test (unit value, size_t n)
 
 	for (size_t i = 0; i < n; i++)
 
-		stack.push (n);
+		stack.push (value);
 
-	if (stack.stack_ [0]               != CanaryValue) ok = false;
-	if (stack.stack_ [stack.size_ + 1] != CanaryValue) ok = false; 
-
-	for (size_t i = 0; i < n; i++)
-
-		if (stack.pop () != n) ok = false;
+	if (* (long*) (stack.data_)                                               != CanaryValue) ok = false;
+	if (* (long*) (stack.data_ + stack.size_ * sizeof (unit) + sizeof (long)) != CanaryValue) ok = false; 
 
 	for (size_t i = 0; i < n; i++)
 
-		if (stack.stack_ [i + 1] != FreeValue) ok = false;
+		if (stack.pop () != value) ok = false;
 
 	if (ok) { $sG printf ("Ok\n"); }
 
@@ -316,7 +311,7 @@ void push_pop_test (unit value, size_t n)
 		printf ("{"
 				"\n[0] = [Canary]\n");
 
-		for (size_t i = 0; i < n; i++) printf ("[%zu] = [Free]\n", i + 1);
+		for (size_t i = 0; i < n; i++) printf ("[%zu] = %zu\n", i, value);
 
 		printf ("[%zu] = [Canary]\n"
 			    "},\n"
