@@ -1,8 +1,10 @@
 #pragma once
 
+#include <stdio.h>
+
 const long CanaryValue = 0xFEE1DEAD;
-const long FreeValue   = 0xFEEDFACE;
-const long Defecated   = 0xDEFECE8D;
+const char FreeValue   = 0xCC;
+const char Defecated   = 0xDE;
 
 enum StackError
 
@@ -51,6 +53,19 @@ enum StackError
 
 #endif
 
+#ifdef ALLOW_TRACE
+
+	#define TRACE(format_, ...) { $sy; printf ("[=^.^=] %s [line %d]: ", __TX_FUNCTION__, __LINE__); \
+                                       printf (format_, __VA_ARGS__);                                \
+                                       printf ("\n"); } 
+
+#else
+
+	#define TRACE(msg_, ...) ;
+
+#endif
+
+
 long long HashOf (const void * ptr, size_t size);
 
 const char * strDynamicStackError (int err);
@@ -98,7 +113,7 @@ class DynamicStack
 
 public :
 
-	DynamicStack (size_t size = 0);
+	DynamicStack (size_t size = 0, const char * name = "unnamed");
 
 	~DynamicStack ();
 
@@ -108,29 +123,17 @@ public :
 
 	DataType pop ();
 
-	DataType top ();
+	inline DataType top ();
 
-	size_t getSize () { CHECK return size_; }
+	inline size_t getSize   () { CHECK return size_; }
 
-	size_t getLength () { CHECK return length_; }
+	inline size_t getLength () { CHECK return length_; }
 
-	void UpdateHash () 
-	
-	{ 
-		
-		long long hash = 0; 
-		
-		std::swap (hash, hash_); 
-		
-		hash = HashOf (this, sizeof (DynamicStack)); 
-	
-		std::swap (hash, hash_);
-
-	}
-
-	int OK ();
+	inline size_t getBytes  () {       return size_ * sizeof (DataType) + 2 * sizeof (CanaryValue); }
 
 	void print ();
+
+	void printBytes ();
 
 	template <typename unit>
 	friend void push_pop_test (unit value, size_t n); 
@@ -147,13 +150,35 @@ private :
 
 	size_t length_;
 
+	const char * label_;
+
 	long bound2_;
 
 	long destructed_;
 
-	void     set (size_t index, DataType value);
+	inline void     set (size_t index, DataType value);
+	inline DataType get (size_t index);
 
-	DataType get (size_t index);
+	inline DataType * getData (char * data = nullptr, size_t index = 0);
+
+	inline void   Free (size_t index, char * data = nullptr);
+	inline bool isFree (size_t index, char * data = nullptr);
+
+	void UpdateHash () 
+	
+	{ 
+		
+		long long hash = 0; 
+		
+		std::swap (hash, hash_); 
+		
+		hash = HashOf (this, sizeof (DynamicStack)); 
+	
+		std::swap (hash, hash_);
+
+	}
+
+	int OK ();
 
 };
 

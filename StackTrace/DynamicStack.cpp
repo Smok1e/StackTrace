@@ -1,7 +1,7 @@
 #define TX_COMPILED
 
 template <typename DataType>
-DynamicStack <DataType>::DynamicStack (size_t size /* = 0 */) :
+DynamicStack <DataType>::DynamicStack (size_t size /* = 0 */, const char * label /*= "unnamed"*/) :
 
 	bound1_ (CanaryValue),
 
@@ -13,13 +13,15 @@ DynamicStack <DataType>::DynamicStack (size_t size /* = 0 */) :
 
 	length_ (0),
 
+	label_ (label),
+
 	hash_ (0),
 
 	destructed_ (0)
 
 {
 
-	printf ("Constructing stack...\n");
+	TRACE ("Constructing stack...");
 
 	data_ = new char [sizeof (long) * 2];
 
@@ -39,7 +41,7 @@ DynamicStack <DataType>::~DynamicStack ()
 
 {
 
-	printf ("Destructing stack...\n");
+	TRACE ("Destructing stack...");
 
 	CHECK;
 
@@ -58,13 +60,13 @@ void DynamicStack <DataType>::resize (size_t size)
 
 	CHECK;
 
-	printf ("Resizing from %zu to %zu...\n", size_, size);
+	TRACE ("Resizing from %zu to %zu...", size_, size);
 
 	if (size == size_) 
 		
 	{
 
-		printf ("Canceled: size == new size.\n");
+		TRACE ("Canceled: size == new size.\n");
 
 		return;
 
@@ -75,9 +77,11 @@ void DynamicStack <DataType>::resize (size_t size)
 	* (long*) (new_data)                                            = CanaryValue;
 	* (long*) (new_data + size * sizeof (DataType) + sizeof (long)) = CanaryValue;
 
-	for (size_t i = sizeof (long); i <= size_ * sizeof (DataType) && i <= size * sizeof (DataType); i += sizeof (DataType))
+	for (size_t i = 0; i < size; i ++)
 
-		* (DataType*) (new_data + i) = * (DataType*) (data_ + i);
+		if (i >= size_) Free (i, new_data);
+
+		else *getData (new_data, i) = *getData (data_, i);
 
 	delete[] (data_);
 	data_ = new_data;
@@ -88,7 +92,7 @@ void DynamicStack <DataType>::resize (size_t size)
 
 	UpdateHash ();
 
-	printf ("Resized: new data size is %d.\n", sizeof (DataType) * size_ + sizeof (long) * 2);
+	TRACE ("Resized: new data size is %d.", sizeof (DataType) * size_ + sizeof (long) * 2);
 
 	CHECK;
 
@@ -100,6 +104,8 @@ void DynamicStack <DataType>::push (DataType value)
 {
 
 	CHECK
+
+	TRACE ("Pushing 0x%X to [%zu]", value, length_);
 
 	if (length_ >= size_) resize ((size_ + 1) * 2);
 
@@ -124,6 +130,10 @@ DataType DynamicStack <DataType>::pop ()
 
 	DataType value = top ();
 
+	TRACE ("Popping 0x%X from [%zu]", value, length_);
+
+	Free (length_);
+
 	UpdateHash ();
 
 	CHECK
@@ -133,11 +143,70 @@ DataType DynamicStack <DataType>::pop ()
 }
 
 template <typename DataType>
-DataType DynamicStack <DataType>::top ()
+inline void DynamicStack <DataType>::set (size_t index, DataType value)
+
+{
+
+	* (DataType*) (data_ + index * sizeof (DataType) + sizeof (long)) = value;
+
+}
+
+template <typename DataType>
+inline DataType DynamicStack <DataType>::get (size_t index)
+
+{
+
+	return * (getData (data_, index));
+
+}
+
+template <typename DataType>
+inline DataType DynamicStack <DataType>::top ()
 
 {
 
 	return get (length_);
+
+}
+
+template <typename DataType>
+inline DataType * DynamicStack <DataType>::getData (char * data /*= nullptr*/, size_t index /*= 0*/)
+
+{
+
+	if (!data) data = data_;
+
+	return (DataType*) (data + sizeof (CanaryValue) + index * sizeof (DataType));
+
+}
+
+template <typename DataType>
+inline void DynamicStack <DataType>::Free (size_t index, char * data /*= nullptr*/)
+
+{
+
+	TRACE ("Freeing [%zu]", index);
+
+	char * ptr = (char*) getData (data, index);
+
+	for (size_t i = 0; i < sizeof (DataType) ; i++)
+
+		ptr[i] = FreeValue;
+
+}
+
+template <typename DataType>
+inline bool DynamicStack <DataType>::isFree (size_t index, char * data /*= nullptr*/)
+
+{
+
+	char * ptr = (char*) getData (data, index);
+
+	for (size_t i = 0; i < sizeof (DataType); i++)
+
+		if (* (ptr + i) != FreeValue) return false;
+
+	return true;
 
 }
 
@@ -200,35 +269,60 @@ void DynamicStack <DataType>::print ()
 
 	CHECK;
 
-	$sc
+	$sC
 
-	printf ("-=Stack=-\n"
-		    "size   = %zu,\n"
-	        "length = %zu\n\n"
-	        "Contains:\n", size_, length_);
+	printf ("|-===========Stack===========-|\n"
+		    "name:  '%s', \n"
+			"type:   %s,  \n"
+		    "size:   %zu, \n"
+	        "length: %zu, \n"
+		    "bytes:  %zu, \n"
+		    "hash:   %lld,\n\n"
+	        "Contains:\n", label_, typeid (DataType).name (), size_, length_, size_ * sizeof (DataType) + sizeof (long) * 2, hash_);
 
 	size_t n = 0;
 
-	for (size_t i = 0; i < size_ * sizeof (DataType) + 2 * sizeof (long); i)
+	for (size_t i = 0; i < size_ * sizeof (DataType) + 2 * sizeof (CanaryValue); i)
 
 	{
 
 		printf ("[%zu] = ", n);
+
 	
-		if      (* (long*) (data_ + i) == CanaryValue) printf ("[Canary]\n"),     i += sizeof (long);
-		else if (* (long*) (data_ + i) ==   FreeValue) printf ("[Free]\n"),       i += sizeof (long);
-		else if (* (long*) (data_ + i) ==   Defecated) printf ("[Defecated!]\n"), i += sizeof (long);
+		if      (* (long*) (data_ + i) == CanaryValue) 
+			
+			printf ("[Canary] (0x%X)\n", * (long*) (data_ + i)),   i += sizeof (CanaryValue);
 
-		//else txPrintf ("(%s) %a\n", typeid (DataType).name (), *(DataType*) (data_ + i)), i += sizeof (DataType);
+		else if (isFree ((i - sizeof (CanaryValue)) / sizeof (DataType))) 
+			
+			printf ("[Free] (0x%X)\n", * (DataType*) (data_ + i)), i += sizeof (DataType);
 
-		else printf ("\n"), i += sizeof (DataType);
+		else 
+			
+			printf ("0x%04X\n", *(data_ + i)), i += sizeof (DataType);
 
 		n ++;
 
 	}
 
+	printf ("|-===========Stack===========-|\n");
 
-	printf ("-=Stack=-\n");
+}
+
+template <typename DataType>
+void DynamicStack <DataType>::printBytes ()
+
+{
+
+	$sc;
+
+	printf ("Stack '%s' bytes:\n", label_);
+
+	for (size_t i = 0; i < getBytes (); i++)
+
+		printf ("%X ", data_[i]);
+
+	printf ("\n");
 
 }
 
@@ -255,24 +349,6 @@ const char * strDynamicStackError (int err)
 	}
 
 	return "Unknown error";
-
-}
-
-template <typename DataType>
-void DynamicStack <DataType>::set (size_t index, DataType value)
-
-{
-
-	* (DataType*) (data_ + index * sizeof (DataType) + sizeof (long)) = value;
-
-}
-
-template <typename DataType>
-DataType DynamicStack <DataType>::get (size_t index)
-
-{
-
-	return * (DataType*) (data_ + index * sizeof (DataType) + sizeof (long));
 
 }
 
