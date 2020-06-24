@@ -1,57 +1,130 @@
-#define TX_COMPILING
 #define ALLOW_TRACE
 
 #include <TXLib.h>
-#include <stack>
-#include "DynamicStack.h"
 
-struct Test 
+#ifdef ALLOW_TRACE
+
+	#define TRACE(format_, ...) { $sC; printf ("[~^.^~] %s [line %d]: ", __TX_FUNCTION__, __LINE__); \
+                                       printf (format_, __VA_ARGS__);                                \
+                                       printf ("\n"); } 
+
+#else
+
+	#define TRACE(msg_, ...) ;
+
+#endif
+
+#define CREATE_CONTROLLED(name__, value__) Controlled name__ (value__, #name__);
+
+struct Controlled
 
 {
 
 	int value_;
 
-	int value1_;
+	std::string label_;
 
-	Test (int value, int value1) : value_ (value), value1_ (value1)
+	Controlled (int value, const char * label);
 
-	{
-	
-		$sG;
+	Controlled (const Controlled & that);
 
-		//printf ("Test #%p constructed\n", this);
-
-	}
-
-	~Test ()
-
-	{
-	
-		$sR;
-
-		//printf ("Test #%p  destructed\n", this);
-
-	}
+	Controlled & operator= (const Controlled & that);
 
 };
+
+Controlled operator+ (const Controlled & a, const Controlled & b);
+Controlled operator- (const Controlled & a, const Controlled & b);
+Controlled operator* (const Controlled & a, const Controlled & b);
+Controlled operator/ (const Controlled & a, const Controlled & b);
 
 int main ()
 
 {
 
-	SetWindowText (GetConsoleWindow (), "Dynamic stack test");
-	size_t size = 5;
+	CREATE_CONTROLLED (test1, __LINE__);
+	CREATE_CONTROLLED (test2, __LINE__);
+	CREATE_CONTROLLED (test3, __LINE__);
 
-	DynamicStack <int> stack (0, "Test stack 1");
+	Controlled result = test1 * (test2 - test1) * test3 - test2;
 
-	stack.print ();
+	printf ("Result: %d, expected %d\n", result.value_, test1.value_ * (test2.value_ - test1.value_) * test3.value_ - test2.value_);
 
-	for (size_t i = 0; i < 5; i++) stack.push (i);
+}
 
-	stack.print ();
+Controlled::Controlled (int value = 0, const char * label = "Unnamed") :
 
-	for (size_t i = 0; i < 5; i++) printf ("[%zu] = %d\n", i, stack.pop ());
+	value_ (value),
 
-	stack.print ();
+	label_ (label)
+
+{
+
+	TRACE ("Created controlled '%s' with value %d", label_.c_str (), value);
+
+}
+
+Controlled::Controlled (const Controlled & that) :
+
+	value_ (that.value_)
+
+{
+
+	label_ = "Copied from '" + that.label_ + "'";
+
+	TRACE ("Created controlled '%s' with value %d", label_.c_str (), value_);
+
+}
+
+Controlled & Controlled::operator= (const Controlled & that)
+
+{
+
+	TRACE ("Assignment %d from '%s' to '%s'", that.value_, that.label_.c_str (), label_.c_str ());
+
+	if (this == &that) return *this;
+
+	value_ = that.value_;
+
+	return *this;
+
+}
+
+Controlled operator+ (const Controlled & a, const Controlled & b)
+
+{
+
+	TRACE ("Adding %d '%s' to %d '%s'", a.value_, a.label_.c_str (), b.value_, b.label_.c_str ());
+
+	return {a.value_ + b.value_, "result"};
+
+}
+
+Controlled operator- (const Controlled & a, const Controlled & b)
+
+{
+
+	TRACE ("Substracting %d '%s' from %d '%s'", b.value_, b.label_.c_str (), a.value_, a.label_.c_str ());
+
+	return {a.value_ - b.value_, "result"};
+
+}
+
+Controlled operator* (const Controlled & a, const Controlled & b)
+
+{
+
+	TRACE ("Multiplicating %d '%s' to %d '%s'", a.value_, a.label_.c_str (), b.value_, b.label_.c_str ());
+
+	return {a.value_ * b.value_, "result"};
+
+}
+
+Controlled operator/ (const Controlled & a, const Controlled & b)
+
+{
+
+	TRACE ("Division %d '%s' by %d '%s'", a.value_, a.label_.c_str (), b.value_, b.label_.c_str ());
+
+	return {a.value_ / b.value_, "result"};
 
 }
