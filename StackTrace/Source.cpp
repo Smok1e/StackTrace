@@ -2,10 +2,12 @@
 
 #include <TXLib.h>
 
+#define __CLEAR_FUNCNAME__ StrFilterFuncName (__TX_FUNCTION__).c_str ()
+
 #ifdef ALLOW_TRACE
 
-	#define TRACE(format_, ...) { $sC; printf ("[~^.^~] %s [line %d]: ", __TX_FUNCTION__, __LINE__); \
-                                       printf (format_, __VA_ARGS__);                                \
+	#define TRACE(format_, ...) { $sC; printf ("[~^.^~] %s [line %d]: ", __CLEAR_FUNCNAME__, __LINE__); \
+                                       printf (format_, __VA_ARGS__);                                   \
                                        printf ("\n"); } 
 
 #else
@@ -30,6 +32,8 @@ struct Controlled
 
 	Controlled & operator= (const Controlled & that);
 
+	void updateLabel (const std::string & label);
+
 };
 
 Controlled operator+ (const Controlled & a, const Controlled & b);
@@ -37,17 +41,17 @@ Controlled operator- (const Controlled & a, const Controlled & b);
 Controlled operator* (const Controlled & a, const Controlled & b);
 Controlled operator/ (const Controlled & a, const Controlled & b);
 
+std::string StrReplaceInstances (std::string str, std::string from, std::string to);
+
+std::string StrFilterFuncName (std::string name);
+
+void ControlledTest (int n1, int n2, int n3);
+
 int main ()
 
 {
 
-	CREATE_CONTROLLED (test1, __LINE__);
-	CREATE_CONTROLLED (test2, __LINE__);
-	CREATE_CONTROLLED (test3, __LINE__);
-
-	Controlled result = test1 * (test2 - test1) * test3 - test2;
-
-	printf ("Result: %d, expected %d\n", result.value_, test1.value_ * (test2.value_ - test1.value_) * test3.value_ - test2.value_);
+	ControlledTest (14, 20, 98);
 
 }
 
@@ -105,7 +109,7 @@ Controlled operator- (const Controlled & a, const Controlled & b)
 
 	TRACE ("Substracting %d '%s' from %d '%s'", b.value_, b.label_.c_str (), a.value_, a.label_.c_str ());
 
-	return {a.value_ - b.value_, "result"};
+	return {a.value_ + b.value_, "result"};
 
 }
 
@@ -126,5 +130,79 @@ Controlled operator/ (const Controlled & a, const Controlled & b)
 	TRACE ("Division %d '%s' by %d '%s'", a.value_, a.label_.c_str (), b.value_, b.label_.c_str ());
 
 	return {a.value_ / b.value_, "result"};
+
+}
+
+void Controlled::updateLabel (const std::string & label)
+
+{
+
+	label_ = label + ", last label: '" + label_ + "'";
+
+	TRACE ("Label updated: new label '%s'", label_.c_str ());
+
+}
+
+std::string StrReplaceInstances (std::string str, std::string from, std::string to)
+
+{
+
+	size_t found  = 0;
+
+	while ((found = str.find (from)) != std::string::npos)
+
+		str.replace (found, from.length (), to);
+
+	return str;
+
+}
+
+std::string StrFilterFuncName (std::string name)
+
+{
+
+	return StrReplaceInstances (name, 
+		                        "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >", 
+		                        "std::srting");
+
+}
+
+void ControlledTest (int n1, int n2, int n3)
+
+{
+
+	printf ("Testing Controlled with %d, %d, %d...\n", n1, n2, n3);
+
+	CREATE_CONTROLLED (c1,     n1);
+	CREATE_CONTROLLED (c2,     n2);
+	CREATE_CONTROLLED (c3,     n3);
+
+	CREATE_CONTROLLED (result,  0);
+
+	    result = c1 * (c2 + c1) - c3 / c2;
+
+	int expect = n1 * (n2 + n1) - n3 / n2;
+
+	printf ("Controlled test (%d * (%d + %d) - %d / %d): ", n1, n2, n1, n3, n2);
+
+	if (result.value_ == expect) 
+		
+	{
+
+		$sg; 
+		
+		printf ("OK\n");
+
+	}
+
+	else 
+		
+	{
+
+		$sR; 
+			
+		printf ("Falied: Expected %d, got %d\n", expect, result.value_);
+
+	}
 
 }
