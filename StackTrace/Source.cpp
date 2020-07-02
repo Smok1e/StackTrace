@@ -17,11 +17,11 @@
 
 #endif
 
-#define CREATE_CONTROLLED(name__, value__) Controlled name__ (value__, #name__);
+#define CREATE_CONTROLLABLE(name__, value__) Controllable name__ (value__, #name__);
 
 #define DUMP_OPERATION(c, color)                                                                                       \
                                                                                                                        \
-	Controlled result (a.value_ c b.value_, "(tmp result #" + std::to_string (operation_counter) + ") =    "           \
+	Controllable result (a.value_ c b.value_, "(tmp result #" + std::to_string (operation_counter) + ") =    "           \
 		                                           + a.label_ + " (" + std::to_string (a.value_) + ") "#c" "           \
 		                                           + b.label_ + " (" + std::to_string (b.value_) + ")      ");         \
                                                                                                                        \
@@ -34,7 +34,7 @@
 
 Graph * _Graph = nullptr;
 
-struct Controlled
+struct Controllable
 
 {
 
@@ -46,11 +46,11 @@ struct Controlled
 
 	std::string label_;
 
-	Controlled (int value = 0, std::string label = "Unnamed");
+	Controllable (int value = 0, std::string label = "Unnamed");
 
-	Controlled (const Controlled & that);
+	Controllable (const Controllable & that);
 
-	Controlled & operator= (const Controlled & that);
+	Controllable & operator= (const Controllable & that);
 
 	void updateLabel (const std::string & label);
 
@@ -58,18 +58,18 @@ struct Controlled
 
 };
 
-size_t Controlled::Counter = 0;
+size_t Controllable::Counter = 0;
 
-Controlled operator+ (const Controlled & a, const Controlled & b);
-Controlled operator- (const Controlled & a, const Controlled & b);
-Controlled operator* (const Controlled & a, const Controlled & b);
-Controlled operator/ (const Controlled & a, const Controlled & b);
+Controllable operator+ (const Controllable & a, const Controllable & b);
+Controllable operator- (const Controllable & a, const Controllable & b);
+Controllable operator* (const Controllable & a, const Controllable & b);
+Controllable operator/ (const Controllable & a, const Controllable & b);
 
 std::string StrReplaceInstances (std::string str, std::string from, std::string to);
 
 std::string StrFilterFuncName (std::string name);
 
-void ControlledTest (int n1, int n2, int n3);
+void ControllableTest (int n1, int n2, int n3);
 
 int main ()
 
@@ -79,9 +79,9 @@ int main ()
 
 	_Graph = &graph;
 
-	CREATE_CONTROLLED (c1, eu::rnd (0, 1000));
-	CREATE_CONTROLLED (c2, eu::rnd (0, 1000));
-	CREATE_CONTROLLED (c3, eu::rnd (0, 1000));
+	CREATE_CONTROLLABLE (c1, eu::rnd (0, 1000));
+	CREATE_CONTROLLABLE (c2, eu::rnd (0, 1000));
+	CREATE_CONTROLLABLE (c3, eu::rnd (0, 1000));
 
 	c1 + c2 / c3;
 
@@ -89,7 +89,7 @@ int main ()
 
 }
 
-Controlled::Controlled (int value, std::string label) :
+Controllable::Controllable (int value, std::string label) :
 
 	index_ (Counter),
 
@@ -102,13 +102,13 @@ Controlled::Controlled (int value, std::string label) :
 	_Graph -> Add ("\"%zu\" [shape = record, label = \" { %s | { %d | index: %zu} } \"]\n", 
 		            index_, label_.c_str (), value_, index_);
 
-	TRACE ("Created controlled '%s' with value %d, index: %zu", label_.c_str (), value, index_);
+	TRACE ("Created Controllable '%s' with value %d, index: %zu", label_.c_str (), value, index_);
 
 	Counter ++;
 
 }
 
-Controlled::Controlled (const Controlled & that) :
+Controllable::Controllable (const Controllable & that) :
 
 	index_ (Counter),
 
@@ -123,13 +123,13 @@ Controlled::Controlled (const Controlled & that) :
 
 	_Graph -> Add ("\"%zu\" -> \"%zu\" [label = \"%s\", color = darkviolet];\n", that.index_, index_, __TX_FUNCTION__);
 
-	TRACE ("Created controlled '%s' with value %d, index: %zu", label_.c_str (), value_, index_);
+	TRACE ("Created Controllable '%s' with value %d, index: %zu", label_.c_str (), value_, index_);
 
 	Counter ++;
 
 }
 
-Controlled & Controlled::operator= (const Controlled & that)
+Controllable & Controllable::operator= (const Controllable & that)
 
 {
 
@@ -147,7 +147,7 @@ Controlled & Controlled::operator= (const Controlled & that)
 
 }
 
-Controlled operator+ (const Controlled & a, const Controlled & b)
+Controllable operator+ (const Controllable & a, const Controllable & b)
 
 {
 
@@ -162,7 +162,7 @@ Controlled operator+ (const Controlled & a, const Controlled & b)
 
 }
 
-Controlled operator- (const Controlled & a, const Controlled & b)
+Controllable operator- (const Controllable & a, const Controllable & b)
 
 {
 
@@ -177,7 +177,7 @@ Controlled operator- (const Controlled & a, const Controlled & b)
 
 }
 
-Controlled operator* (const Controlled & a, const Controlled & b)
+Controllable operator* (const Controllable & a, const Controllable & b)
 
 {
 
@@ -192,7 +192,7 @@ Controlled operator* (const Controlled & a, const Controlled & b)
 
 }
 
-Controlled operator/ (const Controlled & a, const Controlled & b)
+Controllable operator/ (const Controllable & a, const Controllable & b)
 
 {
 	static size_t operation_counter = 0;
@@ -206,7 +206,7 @@ Controlled operator/ (const Controlled & a, const Controlled & b)
 
 }
 
-void Controlled::updateLabel (const std::string & label)
+void Controllable::updateLabel (const std::string & label)
 
 {
 
@@ -216,13 +216,13 @@ void Controlled::updateLabel (const std::string & label)
 
 }
 
-void Controlled::print ()
+void Controllable::print ()
 
 {
 
 	$sc;
 
-	printf ("Controlled '%s' = %d\n", label_.c_str (), value_);
+	printf ("Controllable '%s' = %d\n", label_.c_str (), value_);
 
 }
 
@@ -250,23 +250,23 @@ std::string StrFilterFuncName (std::string name)
 
 }
 
-void ControlledTest (int n1, int n2, int n3)
+void ControllableTest (int n1, int n2, int n3)
 
 {
 
-	printf ("Testing Controlled with %d, %d, %d...\n", n1, n2, n3);
+	printf ("Testing Controllable with %d, %d, %d...\n", n1, n2, n3);
 
-	CREATE_CONTROLLED (c1,     n1);
-	CREATE_CONTROLLED (c2,     n2);
-	CREATE_CONTROLLED (c3,     n3);
+	CREATE_CONTROLLABLE (c1,     n1);
+	CREATE_CONTROLLABLE (c2,     n2);
+	CREATE_CONTROLLABLE (c3,     n3);
 
-	CREATE_CONTROLLED (result,  0);
+	CREATE_CONTROLLABLE (result,  0);
 
 	    result = c1 * (c2 + c1) - c3 / c2;
 
 	int expect = n1 * (n2 + n1) - n3 / n2;
 
-	printf ("Controlled test (%d * (%d + %d) - %d / %d): ", n1, n2, n1, n3, n2);
+	printf ("Controllable test (%d * (%d + %d) - %d / %d): ", n1, n2, n1, n3, n2);
 
 	if (result.value_ == expect) 
 		
