@@ -151,8 +151,11 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\Downloads\TX\test\TXLib.h" />
     <ClInclude Include="DynamicStack.h" />
-    <ClInclude Include="Header.h" />
+    <ClInclude Include="Graph.h" />
     <ClInclude Include="Stack.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="descr.dot" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -35,8 +35,13 @@
     <ClInclude Include="DynamicStack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Header.h">
+    <ClInclude Include="Graph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="descr.dot">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

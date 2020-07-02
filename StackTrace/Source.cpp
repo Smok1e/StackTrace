@@ -1,6 +1,7 @@
 #define ALLOW_TRACE
 
 #include <TXLib.h>
+#include "Graph.h"
 
 #define __CLEAR_FUNCNAME__ StrFilterFuncName (__TX_FUNCTION__).c_str ()
 
@@ -18,15 +19,34 @@
 
 #define CREATE_CONTROLLED(name__, value__) Controlled name__ (value__, #name__);
 
+#define DUMP_OPERATION(c, color)                                                                                       \
+                                                                                                                       \
+	Controlled result (a.value_ c b.value_, "(tmp result #" + std::to_string (operation_counter) + ") =    "           \
+		                                           + a.label_ + " (" + std::to_string (a.value_) + ") "#c" "           \
+		                                           + b.label_ + " (" + std::to_string (b.value_) + ")      ");         \
+                                                                                                                       \
+	_Graph -> Add ("\""#c"#%d\" [shape = circle, color = " #color ", label = \""#c" %s\"];\n", operation_counter, ""); \
+                                                                                                                       \
+	_Graph -> Add ("\"%zu\" -> \""#c"#%zu\"[color = "#color"];\n", a.index_, operation_counter);                       \
+	_Graph -> Add ("\"%zu\" -> \""#c"#%zu\"[color = "#color"];\n", b.index_, operation_counter);                       \
+                                                                                                                       \
+	_Graph -> Add ("\"" #c "#%zu\" -> \"%zu\"[color = "#color"];\n", operation_counter, result.index_);
+
+Graph * _Graph = nullptr;
+
 struct Controlled
 
 {
+
+	static size_t Counter;
+
+	size_t index_;
 
 	int value_;
 
 	std::string label_;
 
-	Controlled (int value, const char * label);
+	Controlled (int value = 0, std::string label = "Unnamed");
 
 	Controlled (const Controlled & that);
 
@@ -34,7 +54,11 @@ struct Controlled
 
 	void updateLabel (const std::string & label);
 
+	void print ();
+
 };
+
+size_t Controlled::Counter = 0;
 
 Controlled operator+ (const Controlled & a, const Controlled & b);
 Controlled operator- (const Controlled & a, const Controlled & b);
@@ -51,11 +75,23 @@ int main ()
 
 {
 
-	ControlledTest (14, 20, 98);
+	CREATE_GRAPH (graph);
+
+	_Graph = &graph;
+
+	CREATE_CONTROLLED (c1, eu::rnd (0, 1000));
+	CREATE_CONTROLLED (c2, eu::rnd (0, 1000));
+	CREATE_CONTROLLED (c3, eu::rnd (0, 1000));
+
+	c1 + c2 / c3;
+
+	_Graph -> Render ();
 
 }
 
-Controlled::Controlled (int value = 0, const char * label = "Unnamed") :
+Controlled::Controlled (int value, std::string label) :
+
+	index_ (Counter),
 
 	value_ (value),
 
@@ -63,11 +99,18 @@ Controlled::Controlled (int value = 0, const char * label = "Unnamed") :
 
 {
 
-	TRACE ("Created controlled '%s' with value %d", label_.c_str (), value);
+	_Graph -> Add ("\"%zu\" [shape = record, label = \" { %s | { %d | index: %zu} } \"]\n", 
+		            index_, label_.c_str (), value_, index_);
+
+	TRACE ("Created controlled '%s' with value %d, index: %zu", label_.c_str (), value, index_);
+
+	Counter ++;
 
 }
 
 Controlled::Controlled (const Controlled & that) :
+
+	index_ (Counter),
 
 	value_ (that.value_)
 
@@ -75,7 +118,14 @@ Controlled::Controlled (const Controlled & that) :
 
 	label_ = "Copied from '" + that.label_ + "'";
 
-	TRACE ("Created controlled '%s' with value %d", label_.c_str (), value_);
+	_Graph -> Add ("\"%zu\" [shape = record, label = \" { %s | { %d | index: %zu} } \"]\n", 
+		            index_, label_.c_str (), value_, index_);
+
+	_Graph -> Add ("\"%zu\" -> \"%zu\" [label = \"%s\", color = darkviolet];\n", that.index_, index_, __TX_FUNCTION__);
+
+	TRACE ("Created controlled '%s' with value %d, index: %zu", label_.c_str (), value_, index_);
+
+	Counter ++;
 
 }
 
@@ -83,11 +133,15 @@ Controlled & Controlled::operator= (const Controlled & that)
 
 {
 
+	_Graph -> Add ("\"%zu\" -> \"%zu\" [label = \"%s\", color = mediumslateblue];\n", that.index_, index_, __TX_FUNCTION__);
+
 	TRACE ("Assignment %d from '%s' to '%s'", that.value_, that.label_.c_str (), label_.c_str ());
 
 	if (this == &that) return *this;
 
 	value_ = that.value_;
+
+	label_ += " (= " + that.label_ + ") (Copied from " + that.label_ + ")";
 
 	return *this;
 
@@ -97,9 +151,14 @@ Controlled operator+ (const Controlled & a, const Controlled & b)
 
 {
 
+	static size_t operation_counter = 0;
+	operation_counter ++;
+
 	TRACE ("Adding %d '%s' to %d '%s'", a.value_, a.label_.c_str (), b.value_, b.label_.c_str ());
 
-	return {a.value_ + b.value_, "result"};
+	DUMP_OPERATION (+, gold1);
+
+	return result;
 
 }
 
@@ -107,9 +166,14 @@ Controlled operator- (const Controlled & a, const Controlled & b)
 
 {
 
+	static size_t operation_counter = 0;
+	operation_counter ++;
+
 	TRACE ("Substracting %d '%s' from %d '%s'", b.value_, b.label_.c_str (), a.value_, a.label_.c_str ());
 
-	return {a.value_ + b.value_, "result"};
+	DUMP_OPERATION (-, deepskyblue);
+
+	return result;
 
 }
 
@@ -117,19 +181,28 @@ Controlled operator* (const Controlled & a, const Controlled & b)
 
 {
 
+	static size_t operation_counter = 0;
+	operation_counter ++;
+
 	TRACE ("Multiplicating %d '%s' to %d '%s'", a.value_, a.label_.c_str (), b.value_, b.label_.c_str ());
 
-	return {a.value_ * b.value_, "result"};
+	DUMP_OPERATION (*, darkorange2);
+
+	return result;
 
 }
 
 Controlled operator/ (const Controlled & a, const Controlled & b)
 
 {
+	static size_t operation_counter = 0;
+	operation_counter ++;
 
 	TRACE ("Division %d '%s' by %d '%s'", a.value_, a.label_.c_str (), b.value_, b.label_.c_str ());
 
-	return {a.value_ / b.value_, "result"};
+	DUMP_OPERATION (/, mediumblue);
+
+	return result;
 
 }
 
@@ -140,6 +213,16 @@ void Controlled::updateLabel (const std::string & label)
 	label_ = label + ", last label: '" + label_ + "'";
 
 	TRACE ("Label updated: new label '%s'", label_.c_str ());
+
+}
+
+void Controlled::print ()
+
+{
+
+	$sc;
+
+	printf ("Controlled '%s' = %d\n", label_.c_str (), value_);
 
 }
 
