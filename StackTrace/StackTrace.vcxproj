@@ -155,7 +155,7 @@
     <ClInclude Include="Stack.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="descr.dot" />
+    <None Include="graph" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,12 +1,14 @@
 #pragma once
 
-#include "C:\Lib\ExtraUtilits\ExtraUtilits.h"
+//----------------------------------------------------------------
 
 #define DOT_PATH "C:\\Graphviz\\bin\\dot.exe"
 
 #define CREATE_GRAPH(name) Graph name (#name);
 
-class Graph 
+//----------------------------------------------------------------
+
+class Graph
 
 {
 
@@ -30,12 +32,10 @@ public :
 	~Graph ()
 
 	{
-	
+
 		fclose (file_);
 
 		file_ = nullptr;
-
-		//_unlink (name_.c_str ());
 
 	}
 
@@ -51,13 +51,7 @@ private :
 
 };
 
-size_t _initGraph ();
-
-void RenderGraph (std::string descr);
-
-void ShowGraph ();
-
-size_t _GraphInitResult = _initGraph ();
+//----------------------------------------------------------------
 
 void Graph::Add (const char * format, ...)
 
@@ -73,13 +67,15 @@ void Graph::Add (const char * format, ...)
 
 }
 
+//----------------------------------------------------------------
+
 void Graph::Render ()
 
 {
 
 	Add ("\n}\n");
 
-	char line [_EU_BUFFSIZE] = "";
+	char line [512] = "";
 
 	sprintf_s (line, "%s %s -Tpng -o%s.png", DOT_PATH, name_.c_str (), name_.c_str ());
 
@@ -96,53 +92,5 @@ void Graph::Render ()
 		system (line);
 
 	}
-
-}
-
-size_t _initGraph ()
-
-{
-
-	if (!eu::fileExists (DOT_PATH)) 
-
-	{
-
-		MessageBox (NULL, "'" DOT_PATH "' not found", "Graph init error", MB_ICONERROR | MB_OK);
-
-		abort ();
-
-	}
-
-	return 0;
-
-}
-
-void RenderGraph (std::string descr)
-
-{
-
-	FILE * file = nullptr;
-
-	fopen_s (&file, "descr.dot", "w");
-
-	assert (file);
-
-	fprintf_s (file, descr.c_str ());
-
-	fclose (file);
-
-	file = nullptr;
-
-	system (DOT_PATH " descr.dot -Tpng -ograph.png");
-
-}
-
-void ShowGraph ()
-
-{
-
-	assert (eu::fileExists ("graph.png"));
-
-	system ("start graph.png");
 
 }

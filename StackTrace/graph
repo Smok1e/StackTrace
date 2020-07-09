@@ -1,22 +1,20 @@
 digraph G
 {
 
-edge [fontcolor = green4]"0" [shape = record, label = " { c1 | { 638 | index: 0} } "]
-"1" [shape = record, label = " { c2 | { 482 | index: 1} } "]
-"2" [shape = record, label = " { c3 | { 173 | index: 2} } "]
-"3" [shape = record, label = " { (tmp result #1) =    c2 (482) / c3 (173)       | { 2 | index: 3} } "]
-"/#1" [shape = circle, color = mediumblue, label = "/ "];
-"1" -> "/#1"[color = mediumblue];
-"2" -> "/#1"[color = mediumblue];
-"/#1" -> "3"[color = mediumblue];
-"4" [shape = record, label = " { Copied from '(tmp result #1) =    c2 (482) / c3 (173)      ' | { 2 | index: 4} } "]
-"3" -> "4" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
-"5" [shape = record, label = " { (tmp result #1) =    c1 (638) + Copied from '(tmp result #1) =    c2 (482) / c3 (173)      ' (2)       | { 640 | index: 5} } "]
-"+#1" [shape = circle, color = gold1, label = "+ "];
-"0" -> "+#1"[color = gold1];
-"4" -> "+#1"[color = gold1];
-"+#1" -> "5"[color = gold1];
-"6" [shape = record, label = " { Copied from '(tmp result #1) =    c1 (638) + Copied from '(tmp result #1) =    c2 (482) / c3 (173)      ' (2)      ' | { 640 | index: 6} } "]
-"5" -> "6" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+edge [fontcolor = green4]"0.0" [shape = record, label = " { c1 | { 1 | index: 0.0} } "]
+"1.0" [shape = record, label = " { c2 | { 4 | index: 1.0} } "]
+"2.0" [shape = record, label = " { c3 | { 2 | index: 2.0} } "]
+"1.1" [shape = record, label = " { c2 | { 2 | index: 1.1} } "]
+"1.0" -> "1.1"
+ [label = "void __thiscall Controllable::update_index(void)", color = lightslategray, style = dashed, arrowhead = none];"-=#1" [shape = circle, color = powderblue, label = "-= "];
+"1.1" -> "-=#1"[color = powderblue];
+"2.0" -> "-=#1"[color = powderblue];
+"-=#1" -> "1.1"[color = powderblue];
+"0.1" [shape = record, label = " { c1 | { 3 | index: 0.1} } "]
+"0.0" -> "0.1"
+ [label = "void __thiscall Controllable::update_index(void)", color = lightslategray, style = dashed, arrowhead = none];"+=#1" [shape = circle, color = crimson, label = "+= "];
+"0.1" -> "+=#1"[color = crimson];
+"1.1" -> "+=#1"[color = crimson];
+"+=#1" -> "0.1"[color = crimson];
 
 }

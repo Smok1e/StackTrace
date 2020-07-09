@@ -40,7 +40,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="descr.dot">
+    <None Include="graph">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
