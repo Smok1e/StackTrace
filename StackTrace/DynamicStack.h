@@ -119,7 +119,13 @@ public :
 
 	void resize (size_t size);
 
-	void push (DataType value);
+	void push (DataType && value);
+
+	template <typename ... Data>
+	void emplace (size_t index, Data ... value);
+
+	template <typename ... Data>
+	void emplace_back (Data ... value);
 
 	DataType pop ();
 
@@ -156,7 +162,7 @@ private :
 
 	long destructed_;
 
-	inline void     set (size_t index, DataType value);
+	inline void     set (size_t index, DataType && value);
 	inline DataType get (size_t index);
 
 	inline DataType * getData (char * data = nullptr, size_t index = 0);
@@ -164,7 +170,7 @@ private :
 	inline void   Free (size_t index, char * data = nullptr);
 	inline bool isFree (size_t index, char * data = nullptr);
 
-	void UpdateHash () 
+	inline void UpdateHash () 
 	
 	{ 
 		

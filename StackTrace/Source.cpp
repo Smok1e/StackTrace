@@ -3,6 +3,7 @@
 #include <TXLib.h>
 #include "Graph.h"
 #include <vector>
+#include "Iterator.h"
 
 //----------------------------------------------------------------
 
@@ -61,11 +62,13 @@ struct Controllable
 
 	Controllable (int value = 0, std::string label = "Unnamed");
 
-	Controllable (const Controllable & that);
+	Controllable (const Controllable &  that);
+	Controllable (const Controllable && that);
 
 	~Controllable ();
 
-	Controllable & operator= (const Controllable & that);
+	Controllable & operator= (const Controllable &  that);
+	Controllable & operator= (const Controllable && that);
 
 	void updateLabel (const std::string & label);
 
@@ -103,9 +106,6 @@ Controllable   operator /  (const Controllable & a, const Controllable & b);
 Controllable & operator += (      Controllable & a, const Controllable & b);
 Controllable & operator -= (      Controllable & a, const Controllable & b);
 
-// c1 += (c2 += c3); c1 += 1;
-// operator += (c1, operator += (c2, c3));
-
 std::string StrReplaceInstances (std::string str, std::string from, std::string to);
 
 std::string StrFilterFuncName (std::string name);
@@ -113,6 +113,13 @@ std::string StrFilterFuncName (std::string name);
 std::string StrIndex (const Controllable & c);
 
 void ControllableTest (int n1, int n2, int n3);
+
+template <typename Data>
+Data && GetRvalue (Data & lvalue);
+
+//----------------------------------------------------------------
+
+#include "DynamicStack.h"
 
 //----------------------------------------------------------------
 
@@ -124,11 +131,17 @@ int main ()
 
 	_Graph = &graph;
 
-	CREATE_CONTROLLABLE (c1, 1);
-	CREATE_CONTROLLABLE (c2, 4);
-	CREATE_CONTROLLABLE (c3, 2);
+	size_t size = 20;
 
-	c1 += c2 -= c3;
+	DynamicStack <Controllable> stack;
+
+	for (size_t i = 0; i < size; i++)
+
+	{
+	
+		stack.emplace_back (i, "test" + std::to_string (i));
+
+	}
 
 	_Graph -> Render ();
 
@@ -147,9 +160,9 @@ Controllable::Controllable (int value, std::string label) :
 	label_ (label)
 
 {
-
-	_Graph -> Add ("\"%s\" [shape = record, label = \" { %s | { %d | index: %s} } \"]\n",
-		           THIS_INDEX, label_.c_str (), value_, THIS_INDEX);
+	
+	_Graph -> Add ("\"%s\" [shape = record, label = \" { %s | { %d | index: %s | <ptr> %p } } \"]\n",
+		           THIS_INDEX, label_.c_str (), value_, THIS_INDEX, this);
 
 	TRACE ("Created Controllable '%s' with value %d, index: %s", label_.c_str (), value, THIS_INDEX);
 
@@ -171,8 +184,33 @@ Controllable::Controllable (const Controllable & that) :
 
 {
 
-	_Graph -> Add ("\"%s\" [shape = record, label = \" { %s | { %d | index: %s} } \"]\n",
-		           THIS_INDEX, label_.c_str (), value_, THIS_INDEX);
+	_Graph -> Add ("\"%s\" [shape = record, label = \" { %s | { %d | index: %s | <ptr> %p } } \"]\n",
+		           THIS_INDEX, label_.c_str (), value_, THIS_INDEX, this);
+
+	_Graph -> Add ("\"%s\" -> \"%s\" [label = \"%s\", color = darkviolet];\n", INDEX (that), THIS_INDEX, __TX_FUNCTION__);
+
+	TRACE ("Created Controllable '%s' with value %d, index: %s", label_.c_str (), value_, THIS_INDEX);
+
+	Counter ++;
+
+}
+
+//----------------------------------------------------------------
+
+Controllable::Controllable (const Controllable && that) :
+
+	index_ (Counter),
+
+	index_counter_ (0),
+
+	value_ (that.value_),
+
+	label_ ("MOVED from '" + that.label_ + "'")
+
+{
+
+	_Graph -> Add ("\"%s\" [shape = record, label = \" { %s | { %d | index: %s | <ptr> %p } } \"]\n",
+		           THIS_INDEX, label_.c_str (), value_, THIS_INDEX, this);
 
 	_Graph -> Add ("\"%s\" -> \"%s\" [label = \"%s\", color = darkviolet];\n", INDEX (that), THIS_INDEX, __TX_FUNCTION__);
 
@@ -188,8 +226,8 @@ Controllable::~Controllable ()
 
 {
 
-    //_Graph -> Add ("\"%zu\" [shape = record, label = \" { %s | { %d | index: %zu} } \"]\n",
-    //                index_, label_.c_str (), value_, index_);
+	_Graph -> Add ("\"%s\" [shape = record, label = \" { %s | { %d | index: %s | <ptr> %p } } \"]\n",
+		           THIS_INDEX, label_.c_str (), value_, THIS_INDEX, this);
 
 }
 
@@ -200,6 +238,28 @@ Controllable & Controllable::operator= (const Controllable & that)
 {
 
 	TRACE ("Assignment %d from '%s' to '%s'", that.value_, that.label_.c_str (), label_.c_str ());
+
+	if (this == &that) return *this;
+
+	value_ = that.value_;
+
+	label_ += " (= " + that.label_ + ") (Copied from " + that.label_ + ")";
+
+	update_index ();
+
+	_Graph -> Add ("\"%s\" -> \"%s\" [label = \"%s\", color = mediumslateblue];\n", INDEX (that), THIS_INDEX, __TX_FUNCTION__);
+
+	return *this;
+
+}
+
+//----------------------------------------------------------------
+
+Controllable & Controllable::operator= (const Controllable && that)
+
+{
+
+	TRACE ("MOVING %d from '%s' to '%s'", that.value_, that.label_.c_str (), label_.c_str ());
 
 	if (this == &that) return *this;
 
@@ -433,5 +493,16 @@ void ControllableTest (int n1, int n2, int n3)
 		printf ("Falied: Expected %d, got %d\n", expect, result.value_);
 
 	}
+
+}
+
+//----------------------------------------------------------------
+
+template <typename Data>
+Data && GetRvalue (Data & lvalue)
+
+{
+
+	return (Data &&) lvalue;
 
 }

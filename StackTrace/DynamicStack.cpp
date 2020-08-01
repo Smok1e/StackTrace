@@ -1,5 +1,10 @@
 #define TX_COMPILED
 
+#define operator_new(memory_block__, val__)                                                                                    \
+	new (memory_block__) DataType (val__);                                                                                     \
+	_Graph -> Add ("\"place%p\" [shape = record, label = \" { operator_new | { %p } } \"]", memory_block__, memory_block__);   \
+	_Graph -> Add ("\"%s\":<ptr> -> \"place%p\" [arrowhead = dot, style = dashed]", INDEX (*memory_block__), memory_block__);
+
 template <typename DataType>
 DynamicStack <DataType>::DynamicStack (size_t size /* = 0 */, const char * label /*= "unnamed"*/) :
 
@@ -81,7 +86,7 @@ void DynamicStack <DataType>::resize (size_t size)
 
 		if (i >= size_) Free (i, new_data);
 
-		else *getData (new_data, i) = *getData (data_, i);
+		else new (getData (new_data, i)) DataType (*getData (data_, i));
 
 	delete[] (data_);
 	data_ = new_data;
@@ -99,7 +104,7 @@ void DynamicStack <DataType>::resize (size_t size)
 }
 
 template <typename DataType>
-void DynamicStack <DataType>::push (DataType value)
+void DynamicStack <DataType>::push (DataType && value)
 
 {
 
@@ -107,9 +112,9 @@ void DynamicStack <DataType>::push (DataType value)
 
 	TRACE ("Pushing 0x%X to [%zu]", value, length_);
 
-	if (length_ >= size_) resize ((size_ + 1) * 2);
+	if (length_ >= size_) resize (size_ * 2 + 1);
 
-	set (length_, value);
+	set (length_, GetRvalue (value));
 
 	length_ ++;
 
@@ -143,11 +148,45 @@ DataType DynamicStack <DataType>::pop ()
 }
 
 template <typename DataType>
-inline void DynamicStack <DataType>::set (size_t index, DataType value)
+template <typename ... Data>
+void DynamicStack <DataType>::emplace (size_t index, Data ... value)
 
 {
 
-	* (DataType*) (data_ + index * sizeof (DataType) + sizeof (long)) = value;
+	DataType * obj = (DataType*) (data_ + index * sizeof (DataType) + sizeof (long));
+
+	DataType * block = operator_new (obj, value ...);
+
+}
+
+template <typename DataType>
+template <typename ... Data>
+void DynamicStack <DataType>::emplace_back (Data ... value)
+
+{
+
+	CHECK
+
+	if (length_ >= size_) resize (size_ * 2 + 1);
+
+	emplace (length_, value ...);
+
+	length_ ++;
+
+	UpdateHash ();
+
+	CHECK
+
+}
+
+template <typename DataType>
+inline void DynamicStack <DataType>::set (size_t index, DataType && value)
+
+{
+
+	DataType * obj = (DataType*) (data_ + index * sizeof (DataType) + sizeof (long));
+
+	DataType * block = operator_new (obj, GetRvalue (value));
 
 }
 

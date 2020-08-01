@@ -1,20 +1,77 @@
 digraph G
 {
 
-edge [fontcolor = green4]"0.0" [shape = record, label = " { c1 | { 1 | index: 0.0} } "]
-"1.0" [shape = record, label = " { c2 | { 4 | index: 1.0} } "]
-"2.0" [shape = record, label = " { c3 | { 2 | index: 2.0} } "]
-"1.1" [shape = record, label = " { c2 | { 2 | index: 1.1} } "]
-"1.0" -> "1.1"
- [label = "void __thiscall Controllable::update_index(void)", color = lightslategray, style = dashed, arrowhead = none];"-=#1" [shape = circle, color = powderblue, label = "-= "];
-"1.1" -> "-=#1"[color = powderblue];
-"2.0" -> "-=#1"[color = powderblue];
-"-=#1" -> "1.1"[color = powderblue];
-"0.1" [shape = record, label = " { c1 | { 3 | index: 0.1} } "]
-"0.0" -> "0.1"
- [label = "void __thiscall Controllable::update_index(void)", color = lightslategray, style = dashed, arrowhead = none];"+=#1" [shape = circle, color = crimson, label = "+= "];
-"0.1" -> "+=#1"[color = crimson];
-"1.1" -> "+=#1"[color = crimson];
-"+=#1" -> "0.1"[color = crimson];
-
+edge [fontcolor = green4]"0.0" [shape = record, label = " { test0 | { 0 | index: 0.0 | <ptr> 0096300C } } "]
+"place0096300C" [shape = record, label = " { operator_new | { 0096300C } } "]"0.0":<ptr> -> "place0096300C" [arrowhead = dot, style = dashed]"1.0" [shape = record, label = " { Copied from 'test0' | { 0 | index: 1.0 | <ptr> 0096391C } } "]
+"0.0" -> "1.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"2.0" [shape = record, label = " { test1 | { 1 | index: 2.0 | <ptr> 00963944 } } "]
+"place00963944" [shape = record, label = " { operator_new | { 00963944 } } "]"2.0":<ptr> -> "place00963944" [arrowhead = dot, style = dashed]"3.0" [shape = record, label = " { test2 | { 2 | index: 3.0 | <ptr> 0096396C } } "]
+"place0096396C" [shape = record, label = " { operator_new | { 0096396C } } "]"3.0":<ptr> -> "place0096396C" [arrowhead = dot, style = dashed]"4.0" [shape = record, label = " { Copied from 'Copied from 'test0'' | { 0 | index: 4.0 | <ptr> 0094C534 } } "]
+"1.0" -> "4.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"5.0" [shape = record, label = " { Copied from 'test1' | { 1 | index: 5.0 | <ptr> 0094C55C } } "]
+"2.0" -> "5.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"6.0" [shape = record, label = " { Copied from 'test2' | { 2 | index: 6.0 | <ptr> 0094C584 } } "]
+"3.0" -> "6.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"7.0" [shape = record, label = " { test3 | { 3 | index: 7.0 | <ptr> 0094C5AC } } "]
+"place0094C5AC" [shape = record, label = " { operator_new | { 0094C5AC } } "]"7.0":<ptr> -> "place0094C5AC" [arrowhead = dot, style = dashed]"8.0" [shape = record, label = " { test4 | { 4 | index: 8.0 | <ptr> 0094C5D4 } } "]
+"place0094C5D4" [shape = record, label = " { operator_new | { 0094C5D4 } } "]"8.0":<ptr> -> "place0094C5D4" [arrowhead = dot, style = dashed]"9.0" [shape = record, label = " { test5 | { 5 | index: 9.0 | <ptr> 0094C5FC } } "]
+"place0094C5FC" [shape = record, label = " { operator_new | { 0094C5FC } } "]"9.0":<ptr> -> "place0094C5FC" [arrowhead = dot, style = dashed]"10.0" [shape = record, label = " { test6 | { 6 | index: 10.0 | <ptr> 0094C624 } } "]
+"place0094C624" [shape = record, label = " { operator_new | { 0094C624 } } "]"10.0":<ptr> -> "place0094C624" [arrowhead = dot, style = dashed]"11.0" [shape = record, label = " { Copied from 'Copied from 'Copied from 'test0''' | { 0 | index: 11.0 | <ptr> 0097921C } } "]
+"4.0" -> "11.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"12.0" [shape = record, label = " { Copied from 'Copied from 'test1'' | { 1 | index: 12.0 | <ptr> 00979244 } } "]
+"5.0" -> "12.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"13.0" [shape = record, label = " { Copied from 'Copied from 'test2'' | { 2 | index: 13.0 | <ptr> 0097926C } } "]
+"6.0" -> "13.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"14.0" [shape = record, label = " { Copied from 'test3' | { 3 | index: 14.0 | <ptr> 00979294 } } "]
+"7.0" -> "14.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"15.0" [shape = record, label = " { Copied from 'test4' | { 4 | index: 15.0 | <ptr> 009792BC } } "]
+"8.0" -> "15.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"16.0" [shape = record, label = " { Copied from 'test5' | { 5 | index: 16.0 | <ptr> 009792E4 } } "]
+"9.0" -> "16.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"17.0" [shape = record, label = " { Copied from 'test6' | { 6 | index: 17.0 | <ptr> 0097930C } } "]
+"10.0" -> "17.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"18.0" [shape = record, label = " { test7 | { 7 | index: 18.0 | <ptr> 00979334 } } "]
+"place00979334" [shape = record, label = " { operator_new | { 00979334 } } "]"18.0":<ptr> -> "place00979334" [arrowhead = dot, style = dashed]"19.0" [shape = record, label = " { test8 | { 8 | index: 19.0 | <ptr> 0097935C } } "]
+"place0097935C" [shape = record, label = " { operator_new | { 0097935C } } "]"19.0":<ptr> -> "place0097935C" [arrowhead = dot, style = dashed]"20.0" [shape = record, label = " { test9 | { 9 | index: 20.0 | <ptr> 00979384 } } "]
+"place00979384" [shape = record, label = " { operator_new | { 00979384 } } "]"20.0":<ptr> -> "place00979384" [arrowhead = dot, style = dashed]"21.0" [shape = record, label = " { test10 | { 10 | index: 21.0 | <ptr> 009793AC } } "]
+"place009793AC" [shape = record, label = " { operator_new | { 009793AC } } "]"21.0":<ptr> -> "place009793AC" [arrowhead = dot, style = dashed]"22.0" [shape = record, label = " { test11 | { 11 | index: 22.0 | <ptr> 009793D4 } } "]
+"place009793D4" [shape = record, label = " { operator_new | { 009793D4 } } "]"22.0":<ptr> -> "place009793D4" [arrowhead = dot, style = dashed]"23.0" [shape = record, label = " { test12 | { 12 | index: 23.0 | <ptr> 009793FC } } "]
+"place009793FC" [shape = record, label = " { operator_new | { 009793FC } } "]"23.0":<ptr> -> "place009793FC" [arrowhead = dot, style = dashed]"24.0" [shape = record, label = " { test13 | { 13 | index: 24.0 | <ptr> 00979424 } } "]
+"place00979424" [shape = record, label = " { operator_new | { 00979424 } } "]"24.0":<ptr> -> "place00979424" [arrowhead = dot, style = dashed]"25.0" [shape = record, label = " { test14 | { 14 | index: 25.0 | <ptr> 0097944C } } "]
+"place0097944C" [shape = record, label = " { operator_new | { 0097944C } } "]"25.0":<ptr> -> "place0097944C" [arrowhead = dot, style = dashed]"26.0" [shape = record, label = " { Copied from 'Copied from 'Copied from 'Copied from 'test0'''' | { 0 | index: 26.0 | <ptr> 0097ACBC } } "]
+"11.0" -> "26.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"27.0" [shape = record, label = " { Copied from 'Copied from 'Copied from 'test1''' | { 1 | index: 27.0 | <ptr> 0097ACE4 } } "]
+"12.0" -> "27.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"28.0" [shape = record, label = " { Copied from 'Copied from 'Copied from 'test2''' | { 2 | index: 28.0 | <ptr> 0097AD0C } } "]
+"13.0" -> "28.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"29.0" [shape = record, label = " { Copied from 'Copied from 'test3'' | { 3 | index: 29.0 | <ptr> 0097AD34 } } "]
+"14.0" -> "29.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"30.0" [shape = record, label = " { Copied from 'Copied from 'test4'' | { 4 | index: 30.0 | <ptr> 0097AD5C } } "]
+"15.0" -> "30.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"31.0" [shape = record, label = " { Copied from 'Copied from 'test5'' | { 5 | index: 31.0 | <ptr> 0097AD84 } } "]
+"16.0" -> "31.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"32.0" [shape = record, label = " { Copied from 'Copied from 'test6'' | { 6 | index: 32.0 | <ptr> 0097ADAC } } "]
+"17.0" -> "32.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"33.0" [shape = record, label = " { Copied from 'test7' | { 7 | index: 33.0 | <ptr> 0097ADD4 } } "]
+"18.0" -> "33.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"34.0" [shape = record, label = " { Copied from 'test8' | { 8 | index: 34.0 | <ptr> 0097ADFC } } "]
+"19.0" -> "34.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"35.0" [shape = record, label = " { Copied from 'test9' | { 9 | index: 35.0 | <ptr> 0097AE24 } } "]
+"20.0" -> "35.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"36.0" [shape = record, label = " { Copied from 'test10' | { 10 | index: 36.0 | <ptr> 0097AE4C } } "]
+"21.0" -> "36.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"37.0" [shape = record, label = " { Copied from 'test11' | { 11 | index: 37.0 | <ptr> 0097AE74 } } "]
+"22.0" -> "37.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"38.0" [shape = record, label = " { Copied from 'test12' | { 12 | index: 38.0 | <ptr> 0097AE9C } } "]
+"23.0" -> "38.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"39.0" [shape = record, label = " { Copied from 'test13' | { 13 | index: 39.0 | <ptr> 0097AEC4 } } "]
+"24.0" -> "39.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"40.0" [shape = record, label = " { Copied from 'test14' | { 14 | index: 40.0 | <ptr> 0097AEEC } } "]
+"25.0" -> "40.0" [label = "__thiscall Controllable::Controllable(const struct Controllable &)", color = darkviolet];
+"41.0" [shape = record, label = " { test15 | { 15 | index: 41.0 | <ptr> 0097AF14 } } "]
+"place0097AF14" [shape = record, label = " { operator_new | { 0097AF14 } } "]"41.0":<ptr> -> "place0097AF14" [arrowhead = dot, style = dashed]"42.0" [shape = record, label = " { test16 | { 16 | index: 42.0 | <ptr> 0097AF3C } } "]
+"place0097AF3C" [shape = record, label = " { operator_new | { 0097AF3C } } "]"42.0":<ptr> -> "place0097AF3C" [arrowhead = dot, style = dashed]"43.0" [shape = record, label = " { test17 | { 17 | index: 43.0 | <ptr> 0097AF64 } } "]
+"place0097AF64" [shape = record, label = " { operator_new | { 0097AF64 } } "]"43.0":<ptr> -> "place0097AF64" [arrowhead = dot, style = dashed]"44.0" [shape = record, label = " { test18 | { 18 | index: 44.0 | <ptr> 0097AF8C } } "]
+"place0097AF8C" [shape = record, label = " { operator_new | { 0097AF8C } } "]"44.0":<ptr> -> "place0097AF8C" [arrowhead = dot, style = dashed]"45.0" [shape = record, label = " { test19 | { 19 | index: 45.0 | <ptr> 0097AFB4 } } "]
+"place0097AFB4" [shape = record, label = " { operator_new | { 0097AFB4 } } "]"45.0":<ptr> -> "place0097AFB4" [arrowhead = dot, style = dashed]
 }
